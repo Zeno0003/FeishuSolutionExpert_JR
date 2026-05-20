@@ -76,4 +76,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    ② 只推已修改的文件（`M` / ` D`）
    ③ 新增 + 修改一起推
    ④ 全部推（含删除）
-   确认后执行 `git add` → `git commit` → `git push all` 同步到 Gitee + GitHub
+   确认后执行 `git add` → `git commit` → `git push gitee master && git push <细粒度token>@github.com master` 同步到 Gitee + GitHub（GitHub 使用限时 fine-grained token 认证，不持久化凭据）
