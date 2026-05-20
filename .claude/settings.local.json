@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(python *)",
+      "Bash(where python *)",
+      "Read(//mnt/c/Users/Administrator/AppData/Local/Programs/**)",
+      "Read(//c/Users/Administrator/AppData/Local/Programs/**)",
+      "Read(//tmp/**)",
+      "Read(//tmp/qc_extract/xl/**)",
+      "Bash(mkdir -p qc_extract jk_extract)",
+      "Bash(unzip -o \"_business/质检表格.xlsx\" -d qc_extract/)",
+      "Bash(unzip -o \"_business/商品进库表.xlsx\" -d jk_extract/)"
+    ]
+  }
+}
