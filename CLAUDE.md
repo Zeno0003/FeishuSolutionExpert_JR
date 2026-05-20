@@ -71,3 +71,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 5. 有取舍决策时追加到 `_decisions/决策日志.md`
 6. 会话结束时写纪要至 `_changelog/YYYY-MM-DD-主题.md`
 7. 阶段性成果更新到 `README.md` 的"当前进度"和 `_worklog/工作日志.md`
+8. 会话产出新文件后，提醒用户是否需要 `git add` + `git commit` + `git push all` 双推到 Gitee 和 GitHub
