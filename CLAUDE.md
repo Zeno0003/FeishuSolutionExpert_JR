@@ -71,4 +71,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 5. 有取舍决策时追加到 `_decisions/决策日志.md`
 6. 会话结束时写纪要至 `_changelog/YYYY-MM-DD-主题.md`
 7. 阶段性成果更新到 `README.md` 的"当前进度"和 `_worklog/工作日志.md`
-8. 用户说「双推」时，先询问确认范围：推哪些文件/目录、是否包含新增和修改、是否需要 commit。确认后再执行 `git push all` 同步到 Gitee + GitHub
+8. 用户说「双推」时，用数字选项确认范围：
+   ① 只推新增的未跟踪文件（`??`）
+   ② 只推已修改的文件（`M` / ` D`）
+   ③ 新增 + 修改一起推
+   ④ 全部推（含删除）
+   确认后执行 `git add` → `git commit` → `git push all` 同步到 Gitee + GitHub
