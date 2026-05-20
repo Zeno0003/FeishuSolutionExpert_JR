@@ -57,6 +57,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `_worklog/` | 用户个人工作日志（手动维护），记录飞书表的实际改动与踩坑 | **读取**，了解用户近期实操 |
 | `_decisions/` | 关键决策日志（选 A 不选 B 的原因） | 追加记录 |
 | `_changelog/` | 每次交流纪要，格式 `YYYY-MM-DD-主题.md` | 每次会话结束写入 |
+| `scripts/` | 工具脚本（如 Excel→Markdown 转换） | 按需使用，`node scripts/xlsx2md.js _business` |
 | `README.md` | 项目导航与当前进度概览 | 进度有变化时更新 |
 
 ## 会话工作流
@@ -65,7 +66,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. 读 `README.md` 了解当前进度和待办
 2. 读 `_worklog/工作日志.md` 了解用户最近的实操记录和待办
-3. 读 `_business/` 下相关文件获取最新业务上下文
+3. 若 `_business/` 下有新增 .xlsx 尚无对应 .md，运行 `node scripts/xlsx2md.js _business` 生成后再读取 .md
 4. 产出方案写入 `_plans/`（按编号递增，单模块拆分为独立文件）
 5. 有取舍决策时追加到 `_decisions/决策日志.md`
 6. 会话结束时写纪要至 `_changelog/YYYY-MM-DD-主题.md`
