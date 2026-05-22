@@ -1,0 +1,244 @@
+/* ===== 基础重置 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-size: 14px;
+  color: #1f2329;
+  background: #fff;
+}
+
+/* ===== App 布局 ===== */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ===== Tab 导航 ===== */
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid #dee0e3;
+  padding: 0 8px;
+  gap: 0;
+  background: #f5f6f7;
+}
+
+.tab-btn {
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: #646a73;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-btn:hover {
+  color: #1f2329;
+}
+
+.tab-btn.active {
+  color: #3370ff;
+  border-bottom-color: #3370ff;
+  font-weight: 500;
+}
+
+/* ===== Tab 内容 ===== */
+.tab-body {
+  flex: 1;
+  padding: 0;
+}
+
+.tab-content {
+  padding: 16px;
+}
+
+.tab-content h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.tab-content .desc {
+  color: #8f959e;
+  font-size: 13px;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* ===== 按钮 ===== */
+.btn-primary {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: #3370ff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2860df;
+}
+
+.btn-primary:disabled {
+  background: #b3c9ff;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 6px 12px;
+  background: #f2f3f5;
+  color: #1f2329;
+  border: 1px solid #dee0e3;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #e8eaed;
+}
+
+/* ===== 进度 ===== */
+.stats {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2329;
+}
+
+.progress-section {
+  margin-top: 12px;
+}
+
+.progress-bar-track {
+  height: 6px;
+  background: #f2f3f5;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #3370ff;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #8f959e;
+}
+
+.empty-hint {
+  color: #8f959e;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+/* ===== 错误列表 ===== */
+.error-list {
+  margin-top: 12px;
+  padding: 8px 8px 8px 28px;
+  background: #fff7f5;
+  border: 1px solid #fed4cd;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #c74332;
+}
+
+.error-list li {
+  margin-bottom: 2px;
+}
+
+/* ===== 表单 ===== */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.form-row label {
+  font-size: 13px;
+  color: #646a73;
+  white-space: nowrap;
+}
+
+.form-row select,
+.form-row input[type='file'] {
+  font-size: 13px;
+  padding: 4px 8px;
+  border: 1px solid #dee0e3;
+  border-radius: 4px;
+}
+
+.file-info {
+  font-size: 12px;
+  color: #8f959e;
+  margin-bottom: 12px;
+}
+
+/* ===== 映射表 ===== */
+.mapping-section,
+.preview-section {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.mapping-section h4,
+.preview-section h4 {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.mapping-table,
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.mapping-table th,
+.mapping-table td,
+.preview-table th,
+.preview-table td {
+  padding: 6px 8px;
+  border: 1px solid #dee0e3;
+  text-align: left;
+}
+
+.mapping-table th,
+.preview-table th {
+  background: #f5f6f7;
+  font-weight: 500;
+}
+
+.mapping-table select {
+  width: 100%;
+  padding: 2px 4px;
+  font-size: 12px;
+  border: 1px solid #dee0e3;
+  border-radius: 3px;
+}
+
+.preview-table {
+  max-height: 200px;
+  display: block;
+  overflow-x: auto;
+}
+
+.preview-table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
