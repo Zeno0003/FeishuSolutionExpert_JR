@@ -1,0 +1,27 @@
+{
+  "name": "feishu-bitable-tools",
+  "version": "1.0.0",
+  "description": "飞书多维表格工具集 — 配件拆分 + 批量导入 + 定时任务",
+  "private": true,
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "start": "tsx src/server.ts",
+    "split": "tsx src/cli.ts split",
+    "import": "tsx src/cli.ts import"
+  },
+  "dependencies": {
+    "@larksuiteoapi/node-sdk": "^1.50.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "multer": "^1.4.5-lts.1",
+    "papaparse": "^5.4.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.12",
+    "@types/papaparse": "^5.3.14",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  }
+}

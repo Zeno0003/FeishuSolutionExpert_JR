@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>飞书多维表格工具集</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f6f8; color: #1f2329; }
+  .app { max-width: 720px; margin: 0 auto; padding: 20px; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  .subtitle { color: #8f959e; font-size: 13px; margin-bottom: 20px; }
+
+  /* Tab bar */
+  .tab-bar { display: flex; gap: 0; margin-bottom: 20px; background: #fff; border-radius: 8px; padding: 4px; }
+  .tab-btn { flex: 1; padding: 10px 16px; border: none; background: transparent; cursor: pointer; font-size: 14px; border-radius: 6px; color: #646a73; transition: all 0.2s; }
+  .tab-btn.active { background: #3370ff; color: #fff; }
+  .tab-btn:hover:not(.active) { background: #f2f3f5; }
+
+  /* Panel */
+  .panel { display: none; background: #fff; border-radius: 8px; padding: 24px; }
+  .panel.active { display: block; }
+  .panel h3 { font-size: 16px; margin-bottom: 8px; }
+  .panel .desc { color: #8f959e; font-size: 13px; margin-bottom: 20px; line-height: 1.6; }
+
+  /* Buttons */
+  .btn { display: inline-block; padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: #3370ff; color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: #2860e0; }
+  .btn-secondary { background: #f2f3f5; color: #1f2329; }
+  .btn-secondary:hover:not(:disabled) { background: #e3e5e8; }
+
+  /* Progress */
+  .progress-section { margin-top: 16px; }
+  .progress-bar-track { width: 100%; height: 8px; background: #e3e5e8; border-radius: 4px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: #3370ff; border-radius: 4px; transition: width 0.3s; }
+  .progress-text { font-size: 12px; color: #8f959e; margin-top: 6px; }
+  .stats { font-size: 14px; margin-top: 12px; padding: 8px 12px; background: #f2f3f5; border-radius: 6px; }
+
+  /* Error list */
+  .error-list { margin-top: 12px; list-style: none; }
+  .error-list li { font-size: 12px; color: #e64646; padding: 4px 8px; background: #fff3f3; border-radius: 4px; margin-bottom: 4px; }
+
+  /* Form */
+  .form-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .form-row label { font-size: 13px; color: #646a73; white-space: nowrap; min-width: 70px; }
+  select, input[type="file"] { font-size: 13px; padding: 6px 10px; border: 1px solid #dee0e3; border-radius: 6px; background: #fff; }
+
+  /* Mapping table */
+  .mapping-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .mapping-table th, .mapping-table td { padding: 8px 12px; text-align: left; font-size: 13px; border-bottom: 1px solid #f2f3f5; }
+  .mapping-table th { color: #8f959e; font-weight: 500; }
+  .mapping-table select { width: 100%; }
+
+  /* Preview table */
+  .preview-wrap { margin-top: 16px; overflow-x: auto; }
+  .preview-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .preview-table th, .preview-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid #f2f3f5; white-space: nowrap; }
+  .preview-table th { background: #f2f3f5; color: #646a73; font-weight: 500; position: sticky; top: 0; }
+
+  .file-info { font-size: 13px; color: #646a73; margin-top: 8px; }
+  .empty-hint { font-size: 13px; color: #8f959e; margin-top: 12px; }
+  .section-title { font-size: 14px; font-weight: 600; margin-top: 20px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>飞书多维表格工具集</h1>
+  <p class="subtitle">配件拆分 · 批量导入</p>
+
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="split">配件拆分</button>
+    <button class="tab-btn" data-tab="import">批量导入</button>
+  </nav>
+
+  <!-- ====== Tab 1: 配件拆分 ====== -->
+  <div id="tab-split" class="panel active">
+    <h3>配件拆分</h3>
+    <p class="desc">将「辅助填表_采购收货(芳)」中未拆分的记录，<br>逐条拆分为 C / R / L 三条配件记录，写入「采购收货表」。</p>
+
+    <button id="btn-split" class="btn btn-primary" onclick="startSplit()">一键拆分配件</button>
+    <button id="btn-cancel" class="btn btn-secondary" onclick="cancelSplit()" style="display:none">取消</button>
+
+    <div id="split-progress" class="progress-section" style="display:none">
+      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:0%"></div></div>
+      <p class="progress-text"></p>
+    </div>
+    <div id="split-stats" class="stats" style="display:none"></div>
+    <ul id="split-errors" class="error-list"></ul>
+  </div>
+
+  <!-- ====== Tab 2: 批量导入 ====== -->
+  <div id="tab-import" class="panel">
+    <h3>批量导入（Excel / CSV）</h3>
+    <p class="desc">上传 Excel (.xlsx/.xls) 或 CSV 文件，映射列到飞书字段，逐行写入多维表格。</p>
+
+    <div class="form-row">
+      <label>目标表：</label>
+      <select id="import-table" onchange="onTableChange()">
+        <option value="">请先加载表列表...</option>
+      </select>
+      <button class="btn btn-secondary" onclick="loadTableFields()" id="btn-load-fields">加载字段</button>
+    </div>
+
+    <div class="form-row">
+      <label>选择文件：</label>
+      <input type="file" id="import-file" accept=".xlsx,.xls,.csv" onchange="onFileChange()">
+    </div>
+
+    <p id="import-file-info" class="file-info" style="display:none"></p>
+
+    <div id="import-mapping" style="display:none">
+      <p class="section-title">字段映射</p>
+      <table class="mapping-table">
+        <thead><tr><th>Excel 列</th><th>→</th><th>飞书字段</th></tr></thead>
+        <tbody id="mapping-tbody"></tbody>
+      </table>
+    </div>
+
+    <div id="import-preview" class="preview-wrap" style="display:none">
+      <p class="section-title">数据预览（前 5 行）</p>
+      <div style="max-height:200px; overflow:auto">
+        <table class="preview-table"><thead id="preview-thead"></thead><tbody id="preview-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <button id="btn-import" class="btn btn-primary" onclick="startImport()" style="display:none">开始导入</button>
+    </div>
+
+    <div id="import-progress" class="progress-section" style="display:none">
+      <div class="progress-bar-track"><div class="progress-bar-fill" style="width:0%"></div></div>
+      <p class="progress-text"></p>
+    </div>
+    <div id="import-stats" class="stats" style="display:none"></div>
+    <ul id="import-errors" class="error-list"></ul>
+  </div>
+</div>
+
+<script>
+// ========== Tab 切换 ==========
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ========== Tab 1: 配件拆分 ==========
+let splitEventSource = null;
+let splitRunning = false;
+
+function cancelSplit() {
+  if (splitEventSource) {
+    splitEventSource.close();
+    splitEventSource = null;
+  }
+  splitRunning = false;
+  document.getElementById('btn-split').disabled = false;
+  document.getElementById('btn-split').textContent = '一键拆分配件';
+  document.getElementById('btn-cancel').style.display = 'none';
+  const statsDiv = document.getElementById('split-stats');
+  statsDiv.style.display = 'block';
+  statsDiv.textContent = '⚠️ 已取消';
+}
+
+async function startSplit() {
+  const btn = document.getElementById('btn-split');
+  const cancelBtn = document.getElementById('btn-cancel');
+  const progressDiv = document.getElementById('split-progress');
+  const bar = progressDiv.querySelector('.progress-bar-fill');
+  const text = progressDiv.querySelector('.progress-text');
+  const statsDiv = document.getElementById('split-stats');
+  const errorsUl = document.getElementById('split-errors');
+
+  btn.disabled = true;
+  btn.textContent = '处理中...';
+  cancelBtn.style.display = 'inline-block';
+  progressDiv.style.display = 'block';
+  statsDiv.style.display = 'none';
+  errorsUl.innerHTML = '';
+  splitRunning = true;
+
+  splitEventSource = new EventSource('/api/split');
+
+  splitEventSource.addEventListener('progress', (e) => {
+    const p = JSON.parse(e.data);
+    if (p.total > 0) {
+      bar.style.width = (p.current / p.total * 100) + '%';
+      text.textContent = p.current + ' / ' + p.total + ' 条';
+    }
+  });
+
+  splitEventSource.addEventListener('done', (e) => {
+    const p = JSON.parse(e.data);
+    splitEventSource.close();
+    splitEventSource = null;
+    splitRunning = false;
+    btn.disabled = false;
+    btn.textContent = '一键拆分配件';
+    cancelBtn.style.display = 'none';
+
+    if (p.total === 0) {
+      text.textContent = '没有待拆分的记录';
+      return;
+    }
+
+    const errCount = p.errors.length;
+    statsDiv.style.display = 'block';
+    statsDiv.textContent = '✅ ' + p.success + ' / ' + p.total + ' 条' + (errCount > 0 ? '  ❌ ' + errCount + ' 条失败' : '');
+
+    p.errors.forEach(err => {
+      const li = document.createElement('li'); li.textContent = err; errorsUl.appendChild(li);
+    });
+  });
+
+  splitEventSource.addEventListener('error', (e) => {
+    if (splitRunning) return; // 取消导致的关闭不算错误
+    splitEventSource.close();
+    splitEventSource = null;
+    splitRunning = false;
+    btn.disabled = false;
+    btn.textContent = '一键拆分配件';
+    cancelBtn.style.display = 'none';
+    try { const d = JSON.parse(e.data); statsDiv.textContent = '❌ ' + d.message; statsDiv.style.display = 'block'; }
+    catch (_) { statsDiv.textContent = '❌ 连接失败，请确认服务已启动且 .env 配置正确'; statsDiv.style.display = 'block'; }
+  });
+}
+
+// ========== Tab 2: 批量导入 ==========
+let tableFields = [];
+let previewData = null;
+
+// 页面加载时获取表列表
+(async function init() {
+  try {
+    const resp = await fetch('/api/tables');
+    const tables = await resp.json();
+    if (Array.isArray(tables)) {
+      const sel = document.getElementById('import-table');
+      sel.innerHTML = '<option value="">选择目标表...</option>' + tables.map(t => '<option value="' + t + '">' + t + '</option>').join('');
+    }
+  } catch(e) { console.error('加载表列表失败', e); }
+})();
+
+async function loadTableFields() {
+  const tableName = document.getElementById('import-table').value;
+  if (!tableName) return;
+  const btn = document.getElementById('btn-load-fields');
+  btn.disabled = true; btn.textContent = '加载中...';
+  try {
+    const resp = await fetch('/api/tables/' + encodeURIComponent(tableName) + '/fields');
+    tableFields = await resp.json();
+    btn.textContent = '已加载 ' + tableFields.length + ' 个字段';
+    if (previewData) renderMapping();
+  } catch(e) { alert('加载字段失败: ' + e.message); btn.textContent = '加载字段'; }
+  btn.disabled = false;
+}
+
+function onTableChange() {
+  document.getElementById('btn-load-fields').textContent = '加载字段';
+  tableFields = [];
+  document.getElementById('import-mapping').style.display = 'none';
+  document.getElementById('btn-import').style.display = 'none';
+}
+
+async function onFileChange() {
+  const file = document.getElementById('import-file').files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const resp = await fetch('/api/preview', { method: 'POST', body: formData });
+    previewData = await resp.json();
+    document.getElementById('import-file-info').style.display = 'block';
+    document.getElementById('import-file-info').textContent = '📄 ' + file.name + '（' + previewData.totalRows + ' 条记录，' + previewData.columns.length + ' 列）';
+
+    // 渲染预览
+    const thead = document.getElementById('preview-thead');
+    const tbody = document.getElementById('preview-tbody');
+    thead.innerHTML = '<tr>' + previewData.columns.map(c => '<th>' + c + '</th>').join('') + '</tr>';
+    tbody.innerHTML = previewData.preview.map(row =>
+      '<tr>' + previewData.columns.map(c => '<td>' + (row[c] ?? '') + '</td>').join('') + '</tr>'
+    ).join('');
+    document.getElementById('import-preview').style.display = 'block';
+
+    if (tableFields.length > 0) renderMapping();
+    else document.getElementById('import-mapping').style.display = 'none';
+
+    updateImportBtn();
+  } catch(e) { alert('文件解析失败: ' + e.message); }
+}
+
+function renderMapping() {
+  if (!previewData) return;
+  const tbody = document.getElementById('mapping-tbody');
+  tbody.innerHTML = previewData.columns.map(col => '<tr><td>' + col + '</td><td>→</td><td><select data-excel="' + col + '"><option value="">不导入</option>' + tableFields.map(f => '<option value="' + f.name + '">' + f.name + '</option>').join('') + '</select></td></tr>').join('');
+  document.getElementById('import-mapping').style.display = 'block';
+  updateImportBtn();
+}
+
+function getMapping() {
+  const mapping = {};
+  document.querySelectorAll('#mapping-tbody select').forEach(sel => {
+    if (sel.value) mapping[sel.dataset.excel] = sel.value;
+  });
+  return mapping;
+}
+
+function updateImportBtn() {
+  const btn = document.getElementById('btn-import');
+  const mapping = getMapping();
+  btn.style.display = (previewData && tableFields.length > 0 && Object.keys(mapping).length > 0) ? 'inline-block' : 'none';
+}
+
+// 监听 mapping 变化
+document.addEventListener('change', (e) => {
+  if (e.target.closest('#mapping-tbody')) updateImportBtn();
+});
+
+async function startImport() {
+  const tableName = document.getElementById('import-table').value;
+  const file = document.getElementById('import-file').files[0];
+  const mapping = getMapping();
+  if (!tableName || !file || Object.keys(mapping).length === 0) return;
+
+  const btn = document.getElementById('btn-import');
+  const progressDiv = document.getElementById('import-progress');
+  const bar = progressDiv.querySelector('.progress-bar-fill');
+  const text = progressDiv.querySelector('.progress-text');
+  const statsDiv = document.getElementById('import-stats');
+  const errorsUl = document.getElementById('import-errors');
+
+  btn.disabled = true;
+  btn.textContent = '导入中...';
+  progressDiv.style.display = 'block';
+  statsDiv.style.display = 'none';
+  errorsUl.innerHTML = '';
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('config', JSON.stringify({ tableName, mapping }));
+
+  // 用 fetch 无法处理 SSE for POST，改用 EventSource 不支持 POST，需要手动处理流
+  const resp = await fetch('/api/import', { method: 'POST', body: formData });
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    // 解析 SSE 行
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || ''; // 保留不完整的最后一行
+
+    let eventType = '', dataStr = '';
+    for (const line of lines) {
+      if (line.startsWith('event: ')) eventType = line.slice(7);
+      else if (line.startsWith('data: ')) dataStr = line.slice(6);
+      else if (line === '' && eventType && dataStr) {
+        // 完整事件
+        try {
+          const data = JSON.parse(dataStr);
+          if (eventType === 'progress' && data.total > 0) {
+            bar.style.width = (data.current / data.total * 100) + '%';
+            text.textContent = data.current + ' / ' + data.total + ' 条';
+          } else if (eventType === 'done') {
+            const errCount = data.errors.length;
+            statsDiv.style.display = 'block';
+            statsDiv.textContent = '✅ ' + data.success + ' / ' + data.total + ' 条' + (errCount > 0 ? '  ❌ ' + errCount + ' 条失败' : '');
+            data.errors.forEach(err => {
+              const li = document.createElement('li'); li.textContent = err; errorsUl.appendChild(li);
+            });
+          } else if (eventType === 'error') {
+            statsDiv.style.display = 'block';
+            statsDiv.textContent = '❌ ' + data.message;
+          }
+        } catch(_) {}
+        eventType = ''; dataStr = '';
+      }
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = '开始导入';
+}
+</script>
+</body>
+</html>

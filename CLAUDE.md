@@ -42,7 +42,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 规则与约束
 
-- **严禁建议 API 调用**：当前阶段仅限飞书原生功能实现。
+- **严禁建议 API 调用**：MVP 方案阶段仅限飞书原生功能实现。已落地的自研工具（`server/`）不在此限。
 - **抗干扰设计**：保持方案简洁，不推销复杂功能。
 - **务实优先**：方案必须可落地、低配置负担，避免过度设计。
 - **迭代优先**：以上规则是当前阶段的指导框架，非一成不变的教条。当业务需求或技术条件发生变化时，方案和规则本身也需要迭代。
@@ -58,6 +58,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `_decisions/` | 关键决策日志（选 A 不选 B 的原因） | 追加记录 |
 | `_changelog/` | 每次交流纪要，格式 `YYYY-MM-DD-主题.md` | 每次会话结束写入 |
 | `scripts/` | 工具脚本（如 Excel→Markdown 转换） | 按需使用，`node scripts/xlsx2md.js _business` |
+| `server/` | 自研飞书 API 工具（Express + SDK） | `npm run dev` 启动，涉及拆分配件、批量导入等 |
+| `_knowledge/` | API 权限配置、字段类型踩坑等备忘 | **读取**，开发与排错时参考 |
 | `README.md` | 项目导航与当前进度概览 | 进度有变化时更新 |
 
 ## 会话工作流
@@ -66,10 +68,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 1. 读 `README.md` 了解当前进度和待办
 2. 读 `_worklog/工作日志.md` 了解用户最近的实操记录和待办
+3. 若涉及 `server/` 自研工具开发或调试，先读 `_knowledge/` 下的踩坑备忘
 3. 若 `_business/` 下有新增 .xlsx 尚无对应 .md，运行 `node scripts/xlsx2md.js _business` 生成后再读取 .md
 4. 产出方案写入 `_plans/`（按编号递增，单模块拆分为独立文件）
 5. 有取舍决策时追加到 `_decisions/决策日志.md`
-6. 会话结束时写纪要至 `_changelog/YYYY-MM-DD-主题.md`
+6. 会话结束时写纪要至 `_changelog/YYYY-MM-DD-主题.md`；若有新踩坑、API 发现、字段类型认知等，同步更新 `_knowledge/` 对应文档
 7. 阶段性成果更新到 `README.md` 的"当前进度"和 `_worklog/工作日志.md`
 8. 用户说「双推」时，用数字选项确认范围：
    ① 只推新增的未跟踪文件（`??`）
