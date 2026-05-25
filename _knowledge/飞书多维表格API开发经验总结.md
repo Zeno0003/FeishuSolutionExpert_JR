@@ -93,18 +93,35 @@ filter = `NOT(CurrentValue.[已拆分])`
 - 短期：两边手动对齐选项
 - 长期：代码层面做降级处理，或自动检测差异并提示
 
-### 3. 字段类型对照表
+### 3. 字段类型对照表（全量）
 
-| type | ui_type | 写入格式 |
-|------|---------|---------|
-| 1 | Text | 字符串 |
-| 2 | Number | 数字 |
+> **来源**：飞书开放平台官方文档 + `fetch-schema` 命令实测验证。type 1/2 是复合类型，渲染时优先用 `ui_type`。
+
+| type | 名称 | 写入格式 |
+|------|------|---------|
+| 1 | Text / Barcode / Email | 字符串 |
+| 2 | Number / Progress / Currency / Rating | 数字 |
 | 3 | SingleSelect | 字符串 |
 | 4 | MultiSelect | 字符串数组 |
 | 5 | DateTime | 毫秒时间戳 |
 | 7 | Checkbox | `true` / 不传 |
+| 11 | User | `[{"id":"ou_xxx"}]` |
+| 13 | Phone | 字符串 |
+| 15 | Url | `{"link":"...","text":"..."}` |
+| 17 | Attachment | `[{"file_token":"..."}]` |
+| 18 | SingleLink | 记录 ID 字符串数组 |
+| 19 | Lookup | 只读（查找引用） |
 | 20 | Formula | 只读 |
 | 21 | DuplexLink | 记录 ID 字符串数组 |
+| 22 | Location | `{"location":...}` |
+| 23 | GroupChat | 群组 ID |
+| 1001 | CreatedTime | 只读（系统字段） |
+| 1002 | ModifiedTime | 只读（系统字段） |
+| 1003 | CreatedUser | 只读（系统字段） |
+| 1004 | ModifiedUser | 只读（系统字段） |
+| 1005 | AutoNumber | 只读（自动编号） |
+
+> **踩坑**：批量导入的 JSON 字段中，若数字值被解析为字符串（如 `"5"` 而非 `5`），Number 类型字段可能写入失败。需在导入前校验类型并转换。
 
 ---
 
@@ -148,7 +165,44 @@ try {
 
 ---
 
-## 六、待完善项
+## 六、字段爬取工具 (fetch-schema)
+
+### 用途
+
+一键拉取飞书多维表格中所有表的字段定义（名称、类型、选项值），输出为 Markdown 文档，用于业务方案重构前了解现有数据底座。
+
+### 使用方式
+
+```bash
+npm run fetch-schema
+```
+
+输出到 `_data/tableSchemas/`：
+- 每张表一个 `表名.md`
+- `字段总览.md` — 按业务目录分组的汇总视图
+
+### 配置
+
+编辑 `server/src/cli.ts` 中的 `TABLE_GROUPS` 对象：
+
+```ts
+const TABLE_GROUPS: Record<string, string[]> = {
+  '质检-入库': ['生成质检工资单', '生成采退表', ...],
+  '采购-收货': ['采购需求', '采购表', ...],
+};
+```
+
+key 为目录名（仅用于分组展示），value 为飞书多维表格中的**精确表名**。
+
+### 经验教训
+
+1. **type 1/2 是复合类型**：Text/Barcode/Email 都是 type=1，Number/Progress/Currency/Rating 都是 type=2。渲染字段类型时**优先用 `ui_type`**（如 `Barcode`、`Currency`），`type` 只作为兜底。
+2. **Lookup (type=19) 大量出现**：在"生成X"类子表中，多数字段是通过关联引用从上游表查来的 Lookup 字段，这是飞书 MVP 方案的核心模式。
+3. **AutoNumber (type=1005) 是系统自动编号**：只在读取时返回，创建记录时自动生成，不可手动写入。
+4. **选项值是方案重构的关键输入**：SingleSelect/MultiSelect 的 `property.options` 直接告诉你当前业务用了哪些枚举值，这是新旧方案切换时最容易遗漏的数据。
+
+---
+## 七、待完善项
 
 - [ ] MultiSelect/SingleSelect 选项不一致的自动检测与降级处理
 - [ ] 拆分前对来源数据进行字段级校验，提前发现不兼容数据

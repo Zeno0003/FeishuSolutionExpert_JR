@@ -7,7 +7,8 @@
     "dev": "tsx src/server.ts",
     "start": "tsx src/server.ts",
     "split": "tsx src/cli.ts split",
-    "import": "tsx src/cli.ts import"
+    "import": "tsx src/cli.ts import",
+    "fetch-schema": "tsx src/cli.ts fetch-schema"
   },
   "dependencies": {
     "@larksuiteoapi/node-sdk": "^1.50.0",

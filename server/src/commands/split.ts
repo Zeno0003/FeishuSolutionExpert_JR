@@ -3,6 +3,7 @@
  */
 import { client, baseToken, resolveTableId } from '../client';
 import { CONFIG } from '../config';
+import { buildFieldGuard, validateFields } from '../utils/fieldSync';
 
 interface SplitProgress {
   total: number;
@@ -41,6 +42,10 @@ export async function splitAccessories(onProgress?: ProgressCallback, shouldCont
   const sourceTableId = await resolveTableId(CONFIG.sourceTableName);
   const targetTableId = await resolveTableId(CONFIG.targetTableName);
 
+  // 0. 构建目标表选项校验器
+  const guard = await buildFieldGuard(targetTableId, Object.values(CONFIG.fieldMapping));
+  const mismatchLog: string[] = [];
+
   // 1. 查询待处理记录
   const records = await getPendingRecords(sourceTableId);
 
@@ -72,11 +77,18 @@ export async function splitAccessories(onProgress?: ProgressCallback, shouldCont
 
     try {
       // 构建共享字段（来源→目标映射）
-      const sharedFields: Record<string, any> = {};
+      const rawFields: Record<string, any> = {};
       for (const [srcField, tgtField] of Object.entries(CONFIG.fieldMapping)) {
         if (fields[srcField] !== undefined) {
-          sharedFields[tgtField] = fields[srcField];
+          rawFields[tgtField] = fields[srcField];
         }
+      }
+
+      // 校验：过滤目标表不存在的选项值
+      const { valid: sharedFields, skipped } = validateFields(guard, rawFields);
+      for (const s of skipped) {
+        const raw = Array.isArray(s.value) ? s.value.join(', ') : s.value;
+        mismatchLog.push(`[${label}] ${s.field}="${raw}" → 跳过（目标表无此选项）`);
       }
 
       // 依次创建 C → R → L 配件记录
@@ -105,6 +117,12 @@ export async function splitAccessories(onProgress?: ProgressCallback, shouldCont
     }
 
     onProgress?.({ total: sorted.length, current: i + 1, success, errors: [...errors] });
+  }
+
+  // 汇总字段跳过告警
+  if (mismatchLog.length > 0) {
+    const summary = `⚠️  以下字段因目标表无对应选项而跳过（共 ${mismatchLog.length} 处）：`;
+    errors.unshift(summary, ...mismatchLog, '');
   }
 
   return { total: sorted.length, current: sorted.length, success, errors };
